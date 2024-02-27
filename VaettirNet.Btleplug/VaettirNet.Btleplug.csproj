@@ -3,12 +3,33 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        
+        <Description>.NET Wrapper for BtlePlug</Description>
+        <Copyright>Chad Nedzlek 2024</Copyright>
+        <Authors>Chad Nedzlek</Authors>
+        <PackageProjectUrl>https://github.com/ChadNedzlek/VaettirNet.Btleplug</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ChadNedzlek/VaettirNet.Btleplug</RepositoryUrl>
+        <RepositoryBranch>main</RepositoryBranch>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>ble;bluetooth</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        
+        <PackageVersion>$(LocalVersion)</PackageVersion>
     </PropertyGroup>
     
     <ItemGroup>
-        <None Include="btleplug_c.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Include="runtimes/win-x64/*" Pack="true" PackagePath="runtimes/win-x64/native/">
+            <CopyToOutputDirectory Condition=" '$(IsWindows)' == 'true' ">PreserveNewest</CopyToOutputDirectory>
+            <Link Condition=" '$(IsWindows)' == 'true' ">%(Filename)%(Extension)</Link>
         </None>
+        <None Include="runtimes/linux-x64/*" Pack="true" PackagePath="runtimes/linux-x64/native/">
+            <CopyToOutputDirectory Condition=" '$(IsLinux)' == 'true' ">PreserveNewest</CopyToOutputDirectory>
+            <Link Condition=" '$(IsLinux)' == 'true' ">%(Filename)%(Extension)</Link>
+        </None>
+        <None Include="runtimes/osx-x64/*" Pack="true" PackagePath="runtimes/osx-x64/native/"/>
+        <None Include="runtimes/osx-arm64/*" Pack="true" PackagePath="runtimes/osx-arm64/native/"/>
+        <None Include="README.md" Pack="true" PackagePath="/"/>
     </ItemGroup>
 
 </Project>
