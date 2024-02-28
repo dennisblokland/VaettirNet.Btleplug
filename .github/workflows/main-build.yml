@@ -27,7 +27,7 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore -p:IsLocal=false
       - name: setup.sh
-        run: bash -c ./setup.sh
+        run: chmod +x ./setup.sh && ./setup.sh
       - name: Build
         run: dotnet build --no-restore --configuration Release -p:IsLocal=false -p:Version=${{ steps.version.outputs.version }} -p:PackageVersion=${{ steps.version.outputs.version }}
       - name: Test
