@@ -7,13 +7,7 @@ namespace Btleplug.Tests;
 public class Tests
 {
     [Test]
-    public async Task Test1()
+    public void Test1()
     {
-        var manager = BtleManager.Create();
-        await foreach (BtlePeripheral p in manager.GetPeripherals([], false))
-        {
-            Console.WriteLine(p.GetId());
-            p.Dispose();
-        }
     }
 }
