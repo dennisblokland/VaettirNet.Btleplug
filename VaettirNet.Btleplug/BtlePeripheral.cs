@@ -52,16 +52,16 @@ public sealed class BtlePeripheral : IDisposable
             NativeMethods.Call(_handle, h => NativeMethods.PeripheralGetServices(h, out buffer));
             IntPtr readPtr = buffer + 8;
             var serviceDescriptors = Read<ServiceDescriptors>(ref readPtr);
-            BtleService[] services = new BtleService[serviceDescriptors.ServiceCount];
-            for (int iService = 0; iService < serviceDescriptors.ServiceCount; iService++)
+            var services = new BtleService[serviceDescriptors.ServiceCount];
+            for (var iService = 0; iService < serviceDescriptors.ServiceCount; iService++)
             {
                 var serviceDescriptor = Read<ServiceDescriptor>(ref readPtr);
-                BtleCharacteristic[] characteristics = new BtleCharacteristic[serviceDescriptor.CharacteristicCount];
-                for (int iCharacteristic = 0; iCharacteristic < serviceDescriptor.CharacteristicCount; iCharacteristic++)
+                var characteristics = new BtleCharacteristic[serviceDescriptor.CharacteristicCount];
+                for (var iCharacteristic = 0; iCharacteristic < serviceDescriptor.CharacteristicCount; iCharacteristic++)
                 {
                     var characteristicDescriptor = Read<CharacteristicDescriptor>(ref readPtr);
-                    Guid[] descriptors = new Guid[characteristicDescriptor.DescriptorCount];
-                    for (int iDescriptor = 0; iDescriptor < characteristicDescriptor.DescriptorCount; iDescriptor++)
+                    var descriptors = new Guid[characteristicDescriptor.DescriptorCount];
+                    for (var iDescriptor = 0; iDescriptor < characteristicDescriptor.DescriptorCount; iDescriptor++)
                     {
                         var uuid = Read<RemoteGuid>(ref readPtr);
                         descriptors[iDescriptor] = uuid.ToGuid();
@@ -198,7 +198,7 @@ public sealed class BtlePeripheral : IDisposable
 
     private void OnNotifyDataReceived(RemoteGuid uuid, byte[] data, int dataSize)
     {
-        Guid guid = uuid.ToGuid();
+        var guid = uuid.ToGuid();
         _callbackSemaphore.Wait();
         PeripheralNotifyDataReceivedCallback callback;
         try
