@@ -27,7 +27,7 @@ public sealed class BtleManager : IDisposable
         return new BtleManager(handle);
     }
 
-    private bool _eventsRegistered = false;
+    private bool _eventsRegistered;
     private readonly object _eventRegistrationLock = new();
     private void EnsureCallbacks()
     {
@@ -43,7 +43,7 @@ public sealed class BtleManager : IDisposable
         }
     }
 
-    private event Action<ulong> OnDisconnected;
+    public event Action<ulong> OnDisconnected;
     private event Action<ulong, RemoteGuid[], PendingPeripheralHandle> OnFound;
     
     private void PeripheralDisconnected(ulong value)
@@ -101,6 +101,7 @@ public sealed class BtleManager : IDisposable
                 serviceFilter.Select(RemoteGuid.FromGuid).ToArray(),
                 serviceFilter.Length
             ));
+        
         using CancellationTokenRegistration _ = cancellationToken.Register(() =>
         {
             OnFound -= foundHandler;
@@ -127,7 +128,7 @@ public sealed class BtleManager : IDisposable
                     .ToImmutableArray();
             }
 
-            channel.Writer.TryWrite(new BtlePeripheral(handle.Claim(), g, address));
+            channel.Writer.TryWrite(new BtlePeripheral(this, handle.Claim(), g, address));
         }
     }
 

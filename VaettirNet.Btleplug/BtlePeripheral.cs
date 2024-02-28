@@ -15,19 +15,37 @@ public sealed class BtlePeripheral : IDisposable
     public ImmutableArray<Guid> ServiceUuids { get; }
     public ulong Address { get; }
 
+    private readonly BtleManager _manager;
     private readonly BtlePeripheralHandle _handle;
     private bool _discoveredServices;
     private ImmutableArray<BtleService> _services;
 
-    internal BtlePeripheral(BtlePeripheralHandle handle, ImmutableArray<Guid> serviceUuids, ulong address)
+    public event Action<BtlePeripheral> Disconnected;
+
+    internal BtlePeripheral(
+        BtleManager manager,
+        BtlePeripheralHandle handle,
+        ImmutableArray<Guid> serviceUuids,
+        ulong address)
     {
         ServiceUuids = serviceUuids;
         Address = address;
+        _manager = manager;
         _handle = handle;
+        manager.OnDisconnected += OnDisconnected;
+    }
+
+    private void OnDisconnected(ulong addr)
+    {
+        if (addr != Address)
+            return;
+
+        Disconnected?.Invoke(this);
     }
 
     public void Dispose()
     {
+        _manager.OnDisconnected -= OnDisconnected;
         _handle.Dispose();
     }
 
