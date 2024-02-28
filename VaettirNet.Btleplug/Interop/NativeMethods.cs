@@ -11,7 +11,8 @@ internal static partial class NativeMethods
 {
     internal delegate void VoidCallback(BtleResult result);
     internal delegate void BooleanCallback(BtleResult result, int value);
-    internal delegate void PeripheralFoundCallback(ulong addr, IntPtr handle, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]RemoteGuid[] services, int servicesCount);
+    internal delegate void ULongValue(ulong value);
+    internal delegate int PeripheralFoundCallback(ulong addr, IntPtr handle, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]RemoteGuid[] services, int servicesCount);
 
     internal delegate void NotifyCallback(
         RemoteGuid uuid,
@@ -28,22 +29,27 @@ internal static partial class NativeMethods
     public static partial BtleResult CreateModule(out BtleModuleHandle handle);
 
     [LibraryImport(LibraryName, EntryPoint = "get_last_module_error", StringMarshalling = StringMarshalling.Utf8)]
-    public static partial string GetLastError(BtleModuleHandle handle);
+    private static partial string GetLastError(BtleModuleHandle handle);
+
+    [LibraryImport(LibraryName, EntryPoint = "set_event_callbacks")]
+    public static partial BtleResult SetEventCallback(
+        BtleModuleHandle handle,
+        PeripheralFoundCallback callback,
+        ULongValue disconnected
+    );
 
     [LibraryImport(LibraryName, EntryPoint = "start_scan_peripherals")]
     public static partial BtleResult StartScan(
         BtleModuleHandle handle,
         [MarshalAs(UnmanagedType.LPArray)] RemoteGuid[] serviceFilter,
-        int serviceFilterCount,
-        [MarshalAs(UnmanagedType.U1)] bool includeServices,
-        PeripheralFoundCallback callback
+        int serviceFilterCount
     );
-
+    
     [LibraryImport(LibraryName, EntryPoint = "stop_scan_peripherals")]
-    public static partial BtleResult StartScan(BtleModuleHandle handle);
+    public static partial BtleResult StopScan(BtleModuleHandle handle);
 
     [LibraryImport(LibraryName, EntryPoint = "peripheral_get_last_error", StringMarshalling = StringMarshalling.Utf8)]
-    public static partial string GetLastError(BtlePeripheralHandle handle);
+    private static partial string GetLastError(BtlePeripheralHandle handle);
 
     [LibraryImport(LibraryName, EntryPoint = "peripheral_get_id")]
     public static partial BtleResult PeripheralGetId(BtlePeripheralHandle handle, out BtleStringHandle id);

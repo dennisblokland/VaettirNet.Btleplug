@@ -13,14 +13,16 @@ namespace VaettirNet.Btleplug;
 public sealed class BtlePeripheral : IDisposable
 {
     public ImmutableArray<Guid> ServiceUuids { get; }
-    
+    public ulong Address { get; }
+
     private readonly BtlePeripheralHandle _handle;
     private bool _discoveredServices;
     private ImmutableArray<BtleService> _services;
 
-    internal BtlePeripheral(BtlePeripheralHandle handle, ImmutableArray<Guid> serviceUuids)
+    internal BtlePeripheral(BtlePeripheralHandle handle, ImmutableArray<Guid> serviceUuids, ulong address)
     {
         ServiceUuids = serviceUuids;
+        Address = address;
         _handle = handle;
     }
 
@@ -178,7 +180,7 @@ public sealed class BtlePeripheral : IDisposable
                 if (peripheralNotifyDataReceivedCallback == null)
                 {
                     await NativeMethods.CallAsync(_handle,
-                        (h, c) => NativeMethods.PeripheralSubscribe(h,
+                        (h, c) => NativeMethods.PeripheralUnsubscribe(h,
                             RemoteGuid.FromGuid(service),
                             RemoteGuid.FromGuid(characteristic),
                             c));

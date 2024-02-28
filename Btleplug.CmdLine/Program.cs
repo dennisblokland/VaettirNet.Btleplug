@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using VaettirNet.Btleplug;
 using VaettirNet.Btleplug.Interop;
@@ -11,7 +12,28 @@ internal static class Program
         BtleManager.SetLogLevel(BtleLogLevel.Debug);
         var manager = BtleManager.Create();
         List<BtlePeripheral> all = [];
-        await foreach (BtlePeripheral p in manager.GetPeripherals([Guid.Parse("6e400001-b5a3-f393-e0a9-e50e24dcca9e")], includeServices: true))
+        CancellationTokenSource src = new();
+        src.CancelAfter(TimeSpan.FromSeconds(30));
+        try
+        {
+            await ScanPeripherals(manager, src, all);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        
+        Console.WriteLine("Shutting down");
+
+        foreach (BtlePeripheral p in all)
+        {
+            await p.DisconnectAsync();
+            p.Dispose();
+        }
+    }
+
+    private static async Task ScanPeripherals(BtleManager manager, CancellationTokenSource src, List<BtlePeripheral> all)
+    {
+        await foreach (BtlePeripheral p in manager.GetPeripherals([Guid.Parse("6e400001-b5a3-f393-e0a9-e50e24dcca9e")], includeServices: true, src.Token))
         {
             all.Add(p);
             Console.WriteLine($"Found device: {p.GetId()}");
@@ -40,12 +62,6 @@ internal static class Program
                     }
                 }
             }
-        }
-
-        foreach (BtlePeripheral p in all)
-        {
-            await p.DisconnectAsync();
-            p.Dispose();
         }
     }
 

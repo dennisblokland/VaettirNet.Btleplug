@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Channels;
 using VaettirNet.Btleplug.Interop;
 using VaettirNet.Btleplug.SafeHandles;
@@ -26,23 +27,95 @@ public sealed class BtleManager : IDisposable
         return new BtleManager(handle);
     }
 
-    public IAsyncEnumerable<BtlePeripheral> GetPeripherals(Guid[] serviceFilter, bool includeServices)
+    private bool _eventsRegistered = false;
+    private readonly object _eventRegistrationLock = new();
+    private void EnsureCallbacks()
     {
+        if (_eventsRegistered)
+            return;
+        lock (_eventRegistrationLock)
+        {
+            if (_eventsRegistered)
+                return;
+            
+            NativeMethods.Call(_handle, h => NativeMethods.SetEventCallback(h, PeripheralFound, PeripheralDisconnected));
+            _eventsRegistered = true;
+        }
+    }
+
+    private event Action<ulong> OnDisconnected;
+    private event Action<ulong, RemoteGuid[], PendingPeripheralHandle> OnFound;
+    
+    private void PeripheralDisconnected(ulong value)
+    {
+        OnDisconnected?.Invoke(value);
+    }
+
+    private int PeripheralFound(ulong addr, IntPtr handle, RemoteGuid[] services, int servicesCount)
+    {
+        Action<ulong, RemoteGuid[], PendingPeripheralHandle> found = OnFound;
+        if (found == null)
+            return 0;
+        PendingPeripheralHandle pending = new(handle);
+        found(addr, services, pending);
+        return pending.IsClaimed ? 1 : 0;
+    }
+
+    private class PendingPeripheralHandle
+    {
+        private readonly object _lock = new();
+        private readonly IntPtr _ptr;
+
+        public PendingPeripheralHandle(IntPtr ptr)
+        {
+            _ptr = ptr;
+        }
+
+        public bool IsClaimed { get; private set; }
+
+        public BtlePeripheralHandle Claim()
+        {
+            if (IsClaimed)
+                throw new InvalidOperationException("Handle already claimed");
+            lock (_lock)
+            {
+                if (IsClaimed)
+                    throw new InvalidOperationException("Handle already claimed");
+                IsClaimed = true;
+            }
+
+            return new BtlePeripheralHandle(_ptr);
+        }
+    }
+
+    public IAsyncEnumerable<BtlePeripheral> GetPeripherals(Guid[] serviceFilter, bool includeServices, CancellationToken cancellationToken = default)
+    {
+        EnsureCallbacks();
         HashSet<ulong> found = [];
         var channel = Channel.CreateUnbounded<BtlePeripheral>();
+        Action<ulong,RemoteGuid[],PendingPeripheralHandle> foundHandler = TryAcceptPeripheral;
+        OnFound += foundHandler;
         NativeMethods.Call(_handle,
             h => NativeMethods.StartScan(
                 h,
                 serviceFilter.Select(RemoteGuid.FromGuid).ToArray(),
-                serviceFilter.Length,
-                includeServices,
-                PeripheralFound
+                serviceFilter.Length
             ));
-
-        return channel.Reader.ReadAllAsync();
-        
-        void PeripheralFound(ulong address, IntPtr peripheralHandle, RemoteGuid[] services, int serviceCount)
+        using CancellationTokenRegistration _ = cancellationToken.Register(() =>
         {
+            OnFound -= foundHandler;
+            NativeMethods.StopScan(_handle);
+        });
+        return channel.Reader.ReadAllAsync(cancellationToken);
+
+        void TryAcceptPeripheral(ulong address, RemoteGuid[] services, PendingPeripheralHandle handle)
+        {
+            bool hasServices = services != null;
+            if (includeServices != hasServices)
+            {
+                return;
+            }
+
             if (!found.Add(address))
                 return;
             
@@ -54,7 +127,7 @@ public sealed class BtleManager : IDisposable
                     .ToImmutableArray();
             }
 
-            channel.Writer.TryWrite(new BtlePeripheral(new BtlePeripheralHandle(peripheralHandle), g));
+            channel.Writer.TryWrite(new BtlePeripheral(handle.Claim(), g, address));
         }
     }
 

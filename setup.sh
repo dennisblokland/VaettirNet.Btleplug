@@ -2,7 +2,7 @@
 
 DLD=$(mktemp -d)
 RUNTIMES="$(dirname "$(readlink -f "$0")")/VaettirNet.Btleplug/runtimes"
-VERSION="0.0.2"
+VERSION="0.0.4"
 
 curl -L "https://github.com/ChadNedzlek/btleplug-c/releases/download/$VERSION/binaries.zip" --fail -o $DLD/binaries.zip
 mkdir -p $DLD/extracted
