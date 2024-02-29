@@ -1,6 +1,6 @@
 SET DLD=%TEMP%\%RANDOM%%RANDOM%
 SET RUNTIMES=%~dp0VaettirNet.Btleplug\runtimes
-SET VERSION=0.0.4
+SET VERSION=0.0.5
 mkdir %DLD%
 curl -L https://github.com/ChadNedzlek/btleplug-c/releases/download/%VERSION%/binaries.zip --fail -o %DLD%\binaries.zip
 mkdir %DLD%\extracted
