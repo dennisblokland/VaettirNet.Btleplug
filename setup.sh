@@ -15,7 +15,7 @@ cp -rf $DLD/extracted/target/win-x64/x86_64-pc-windows-msvc/release/* -t $RUNTIM
 mkdir -p $RUNTIMES/linux-x64/
 cp -rf $DLD/extracted/target/linux-x64/x86_64-unknown-linux-gnu/release/* -t $RUNTIMES/linux-x64/
 mkdir -p $RUNTIMES/linux-arm64/
-cp -rf $DLD/extracted/target/linux-arm64/aarch64-unknown-linux-gnu/release* -t $RUNTIMES/linux-arm64/
+cp -rf $DLD/extracted/target/linux-arm64/aarch64-unknown-linux-gnu/release/* -t $RUNTIMES/linux-arm64/
 mkdir -p $RUNTIMES/osx-arm64/
 cp -rf $DLD/extracted/target/macos-arm64/aarch64-apple-darwin/release/* -t $RUNTIMES/osx-arm64/
 mkdir -p $RUNTIMES/osx-x64/

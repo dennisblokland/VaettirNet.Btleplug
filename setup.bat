@@ -10,7 +10,7 @@ copy /Y %DLD%\extracted\target\win-x64\x86_64-pc-windows-msvc\release\* %RUNTIME
 mkdir %RUNTIMES%\linux-x64\ 2>nul
 copy /Y %DLD%\extracted\target\linux-x64\x86_64-unknown-linux-gnu\release\* %RUNTIMES%\linux-x64\
 mkdir %RUNTIMES%\linux-arm64\ 2>nul
-copy /Y %DLD%\extracted\target\linux-arm64\aarch64-unknown-linux-gnu\release* %RUNTIMES%\linux-arm64\
+copy /Y %DLD%\extracted\target\linux-arm64\aarch64-unknown-linux-gnu\release\* %RUNTIMES%\linux-arm64\
 mkdir %RUNTIMES%\osx-arm64\ 2>nul
 copy /Y %DLD%\extracted\target\macos-arm64\aarch64-apple-darwin\release\* %RUNTIMES%\osx-arm64\
 mkdir %RUNTIMES%\osx-x64\ 2>nul
