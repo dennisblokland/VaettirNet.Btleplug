@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        
+
         <Description>.NET Wrapper for BtlePlug</Description>
         <Copyright>Chad Nedzlek 2024</Copyright>
         <Authors>Chad Nedzlek</Authors>
@@ -15,25 +15,45 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageVersion>$(LocalVersion)</PackageVersion>
-          <RuntimeIdentifiers>linux-x64;linux-arm64;win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+        <RuntimeIdentifiers>linux-x64;linux-arm64;win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <None Include="runtimes/win-x64/*" Pack="true" PackagePath="runtimes/win-x64/native/">
             <CopyToOutputDirectory Condition=" '$(IsWindows)' == 'true' ">PreserveNewest</CopyToOutputDirectory>
             <Link Condition=" '$(IsWindows)' == 'true' ">%(Filename)%(Extension)</Link>
         </None>
-        <None Include="runtimes/linux-x64/*" Condition="'$(RuntimeIdentifier)'=='linux-x64'" Pack="true" PackagePath="runtimes/linux-x64/native/">
-            <CopyToOutputDirectory Condition=" '$(IsLinux)' == 'true'">PreserveNewest</CopyToOutputDirectory>
-            <Link Condition=" '$(IsLinux)' == 'true' ">%(Filename)%(Extension)</Link>
+
+        <!-- 1) The “pack-only” set: drop these into the nupkg under runtimes/... but never copy
+        into your bin/ on a build -->
+        <None Include="runtimes/linux-x64/*">
+            <!-- pack them -->
+            <Pack>true</Pack>
+            <PackagePath>runtimes/linux-x64/native/</PackagePath>
+            <!-- don’t clutter your build output -->
+            <CopyToOutputDirectory>false</CopyToOutputDirectory>
         </None>
-        <None Include="runtimes/linux-arm64/*"  Condition="'$(RuntimeIdentifier)'=='linux-arm64'" Pack="true" PackagePath="runtimes/linux-arm64/native/">
-            <CopyToOutputDirectory Condition=" '$(IsLinux)' == 'true'">PreserveNewest</CopyToOutputDirectory>
-            <Link Condition=" '$(IsLinux)' == 'true'">%(Filename)%(Extension)</Link>
+        <None Include="runtimes/linux-arm64/*">
+            <Pack>true</Pack>
+            <PackagePath>runtimes/linux-arm64/native/</PackagePath>
+            <CopyToOutputDirectory>false</CopyToOutputDirectory>
         </None>
-        <None Include="runtimes/osx-x64/*" Pack="true" PackagePath="runtimes/osx-x64/native/"/>
-        <None Include="runtimes/osx-arm64/*" Pack="true" PackagePath="runtimes/osx-arm64/native/"/>
-        <None Include="README.md" Pack="true" PackagePath="/"/>
+
+        <!-- 2) The “build-only” set: copy these into your bin/ on a normal build, but never pack
+        them -->
+        <Content Include="runtimes/linux-x64/*" Condition="'$(RuntimeIdentifier)'=='linux-x64'">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>%(Filename)%(Extension)</Link>
+            <Pack>false</Pack>
+        </Content>
+        <None Include="runtimes/linux-arm64/*" Condition="'$(RuntimeIdentifier)'=='linux-arm64'">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>%(Filename)%(Extension)</Link>
+            <Pack>false</Pack>
+        </None>
+        <None Include="runtimes/osx-x64/*" Pack="true" PackagePath="runtimes/osx-x64/native/" />
+        <None Include="runtimes/osx-arm64/*" Pack="true" PackagePath="runtimes/osx-arm64/native/" />
+        <None Include="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 
 </Project>
