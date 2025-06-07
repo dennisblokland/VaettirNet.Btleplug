@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         
         <Description>.NET Wrapper for BtlePlug</Description>
@@ -24,8 +24,12 @@
             <Link Condition=" '$(IsWindows)' == 'true' ">%(Filename)%(Extension)</Link>
         </None>
         <None Include="runtimes/linux-x64/*" Pack="true" PackagePath="runtimes/linux-x64/native/">
-            <CopyToOutputDirectory Condition=" '$(IsLinux)' == 'true' ">PreserveNewest</CopyToOutputDirectory>
-            <Link Condition=" '$(IsLinux)' == 'true' ">%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory Condition=" '$(IsLinux)' == 'true' and '$(Platform)' == 'x64' ">PreserveNewest</CopyToOutputDirectory>
+            <Link Condition=" '$(IsLinux)' == 'true' and '$(Platform)' == 'x64' ">%(Filename)%(Extension)</Link>
+        </None>
+        <None Include="runtimes/linux-arm64/*" Pack="true" PackagePath="runtimes/linux-arm64/native/">
+            <CopyToOutputDirectory Condition=" '$(IsLinux)' == 'true' and '$(Platform)' == 'arm64' ">PreserveNewest</CopyToOutputDirectory>
+            <Link Condition=" '$(IsLinux)' == 'true' and '$(Platform)' == 'arm64' ">%(Filename)%(Extension)</Link>
         </None>
         <None Include="runtimes/osx-x64/*" Pack="true" PackagePath="runtimes/osx-x64/native/"/>
         <None Include="runtimes/osx-arm64/*" Pack="true" PackagePath="runtimes/osx-arm64/native/"/>
