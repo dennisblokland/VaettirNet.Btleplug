@@ -7,8 +7,8 @@
         <Description>.NET Wrapper for BtlePlug</Description>
         <Copyright>Chad Nedzlek 2024</Copyright>
         <Authors>Chad Nedzlek</Authors>
-        <PackageProjectUrl>https://github.com/ChadNedzlek/VaettirNet.Btleplug</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/ChadNedzlek/VaettirNet.Btleplug</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/dennisblokland/VaettirNet.Btleplug</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/dennisblokland/VaettirNet.Btleplug</RepositoryUrl>
         <RepositoryBranch>main</RepositoryBranch>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageTags>ble;bluetooth</PackageTags>
