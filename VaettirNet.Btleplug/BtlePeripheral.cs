@@ -17,8 +17,10 @@ public sealed class BtlePeripheral : IDisposable
 
     private readonly BtleManager _manager;
     private readonly BtlePeripheralHandle _handle;
+    private readonly NativeMethods.NotifyCallback _notifyCallbackDelegate;
     private bool _discoveredServices;
     private ImmutableArray<BtleService> _services;
+    private GCHandle? _notifyCallbackHandle;
 
     public event Action<BtlePeripheral> Disconnected;
 
@@ -33,6 +35,8 @@ public sealed class BtlePeripheral : IDisposable
         _manager = manager;
         _handle = handle;
         manager.OnDisconnected += OnDisconnected;
+        _notifyCallbackDelegate = OnNotifyDataReceived;
+        _notifyCallbackHandle = GCHandle.Alloc(_notifyCallbackDelegate);
     }
 
     private void OnDisconnected(ulong addr)
@@ -47,6 +51,10 @@ public sealed class BtlePeripheral : IDisposable
     {
         _manager.OnDisconnected -= OnDisconnected;
         _handle.Dispose();
+        if (_notifyCallbackHandle.HasValue && _notifyCallbackHandle.Value.IsAllocated)
+        {
+            _notifyCallbackHandle.Value.Free();
+        }
     }
 
     public string GetId()
@@ -157,7 +165,7 @@ public sealed class BtlePeripheral : IDisposable
         {
             _callbacks = [];
             await NativeMethods.CallAsync(_handle,
-                (h, c) => NativeMethods.PeripheralRegisterNotificationCallback(h, c, OnNotifyDataReceived));
+                (h, c) => NativeMethods.PeripheralRegisterNotificationCallback(h, c, _notifyCallbackDelegate));
         }
 
         await _callbackSemaphore.WaitAsync();
