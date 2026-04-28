@@ -1,5 +1,8 @@
 # VaettirNet.Btleplug
-[](https://github.com/ChadNedzlek/VaettirNet.Btleplug/actions/workflows/main-build.yml)[](https://www.nuget.org/packages/VaettirNet.Btleplug/)
+
+[![Build Status](https://github.com/ChadNedzlek/VaettirNet.Btleplug/actions/workflows/main-build.yml/badge.svg)](https://github.com/{username}/{repository}/actions/workflows/main-build.yml)
+[![NuGet](https://img.shields.io/nuget/v/VaettirNet.Btleplu.svg)](https://www.nuget.org/packages/VaettirNet.Btleplu/)
+
 ## Overview
 VaettirNet.Btleplug is a .NET wrapper for [BtlePlug](https://github.com/deviceplug/btleplug), providing a convenient way to work with Bluetooth Low Energy (BLE) devices in .NET applications. This library enables seamless BLE communication across multiple platforms, including Windows, Linux, and macOS.
 ## Features
