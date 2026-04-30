@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using VaettirNet.Btleplug.Interop;
@@ -88,7 +89,7 @@ public sealed class BtleManager : IDisposable
         }
     }
 
-    public IAsyncEnumerable<BtlePeripheral> GetPeripherals(Guid[] serviceFilter, bool includeServices, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<BtlePeripheral> GetPeripherals(Guid[] serviceFilter, bool includeServices, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         EnsureCallbacks();
         HashSet<ulong> found = [];
@@ -102,12 +103,18 @@ public sealed class BtleManager : IDisposable
                 serviceFilter.Length
             ));
         
-        using CancellationTokenRegistration _ = cancellationToken.Register(() =>
+        try
+        {
+            await foreach (BtlePeripheral peripheral in channel.Reader.ReadAllAsync(cancellationToken))
+            {
+                yield return peripheral;
+            }
+        }
+        finally
         {
             OnFound -= foundHandler;
             NativeMethods.StopScan(_handle);
-        });
-        return channel.Reader.ReadAllAsync(cancellationToken);
+        }
 
         void TryAcceptPeripheral(ulong address, RemoteGuid[] services, PendingPeripheralHandle handle)
         {
