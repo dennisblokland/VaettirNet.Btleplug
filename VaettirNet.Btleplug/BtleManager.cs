@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
@@ -30,6 +31,14 @@ public sealed class BtleManager : IDisposable
 
     private bool _eventsRegistered;
     private readonly object _eventRegistrationLock = new();
+    // Native side keeps raw fn pointers to these delegates after SetEventCallback returns.
+    // Hold strong instance references AND pin via GCHandle so they survive GC compaction
+    // for the lifetime of this BtleManager. Without this the runtime aborts with
+    // "A callback was made on a garbage collected delegate" when the scan fires later.
+    private NativeMethods.PeripheralFoundCallback _peripheralFoundDelegate;
+    private NativeMethods.ULongValue _peripheralDisconnectedDelegate;
+    private GCHandle _peripheralFoundHandle;
+    private GCHandle _peripheralDisconnectedHandle;
     private void EnsureCallbacks()
     {
         if (_eventsRegistered)
@@ -38,8 +47,13 @@ public sealed class BtleManager : IDisposable
         {
             if (_eventsRegistered)
                 return;
-            
-            NativeMethods.Call(_handle, h => NativeMethods.SetEventCallback(h, PeripheralFound, PeripheralDisconnected));
+
+            _peripheralFoundDelegate = PeripheralFound;
+            _peripheralDisconnectedDelegate = PeripheralDisconnected;
+            _peripheralFoundHandle = GCHandle.Alloc(_peripheralFoundDelegate);
+            _peripheralDisconnectedHandle = GCHandle.Alloc(_peripheralDisconnectedDelegate);
+
+            NativeMethods.Call(_handle, h => NativeMethods.SetEventCallback(h, _peripheralFoundDelegate, _peripheralDisconnectedDelegate));
             _eventsRegistered = true;
         }
     }
@@ -141,6 +155,14 @@ public sealed class BtleManager : IDisposable
 
     public void Dispose()
     {
+        // Dispose the native handle first so the Rust side stops invoking callbacks,
+        // then release the GCHandles that kept the delegates alive.
         _handle.Dispose();
+
+        if (_peripheralFoundHandle.IsAllocated)
+            _peripheralFoundHandle.Free();
+        if (_peripheralDisconnectedHandle.IsAllocated)
+            _peripheralDisconnectedHandle.Free();
+
     }
 }
